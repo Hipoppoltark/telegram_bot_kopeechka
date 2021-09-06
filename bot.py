@@ -35,7 +35,7 @@ class Form(StatesGroup):
 
 async def set_default_commands(dp):
     await dp.bot.set_my_commands([
-        types.BotCommand("start", "Запустить бота")
+        types.BotCommand("start", "Услуги")
     ])
 
 
@@ -175,4 +175,4 @@ async def process_get_code(message: types.Message, state: FSMContext):
 
 if __name__ == "__main__":
     # Запуск бота
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=set_default_commands)
