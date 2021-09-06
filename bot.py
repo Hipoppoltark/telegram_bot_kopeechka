@@ -33,6 +33,12 @@ class Form(StatesGroup):
     send_message = State()
 
 
+async def set_default_commands(dp):
+    await dp.bot.set_my_commands([
+        types.BotCommand("start", "Запустить бота")
+    ])
+
+
 # Хэндлер на команду /start
 @dp.message_handler(commands="start")
 async def cmd_test1(message: types.Message):
