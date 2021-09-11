@@ -133,21 +133,31 @@ async def process_get_code(message: types.Message, state: FSMContext):
     await message.answer("Сейчас получим код")
     async with state.proxy() as data:
         task_id = data['task_id']
-        response = requests.get(
-            'http://api.kopeechka.store/mailbox-get-message',
-            params={'full': '0',
-                    'id': task_id,
-                    'token': STANDARD_TOKEN,
-                    'type': 'json',
-                    'api': '2.0'},
-        )
-        response = response.json()
-        if response['status'] == "OK":
-            await message.answer(response['fullmessage'], reply_markup=keyboard)
-            await Form.services.set()
-        elif response['status'] == "ERROR":
-            await message.answer(f"Вы не отправили письмо. {response['value']} Отправьте его повторно или введите /cancel",
-                                 reply_markup=get_reply_keyboard(["Код отправлен"]))
+        response = {"value": "WAIT_LINK"}
+        i = 0
+        while response['value'] == "WAIT_LINK":
+            if i == 5:
+                await message.answer("Мы не нашли письма, попробуйте все занвово.",
+                                     reply_markup=get_reply_keyboard(["Получить код с почты kopeechka.store📧"]))
+                await Form.services.set()
+                break
+            response = requests.get(
+                'http://api.kopeechka.store/mailbox-get-message',
+                params={'full': '0',
+                        'id': task_id,
+                        'token': STANDARD_TOKEN,
+                        'type': 'json',
+                        'api': '2.0'},
+            )
+            response = response.json()
+            if response['status'] == "OK":
+                await message.answer(response['fullmessage'], reply_markup=keyboard)
+                await Form.services.set()
+            elif response['status'] == "ERROR" and response['value'] != "WAIT_LINK":
+                await message.answer(f"Вы не отправили письмо. Отправьте его повторно или введите /cancel",
+                                     reply_markup=get_reply_keyboard(["Код отправлен"]))
+                break
+            i += 1
 
 
 if __name__ == "__main__":
