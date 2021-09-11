@@ -129,7 +129,7 @@ async def process_get_code(message: types.Message, state: FSMContext):
             response = response.json()
             if response['status'] == "OK":
                 await message.answer(response['fullmessage'], reply_markup=keyboard)
-                await state.finish()
+                await Form.services.set()
             elif response['status'] == "ERROR":
                 await message.answer("Вы не отправили письмо.",
                                      reply_markup=get_reply_keyboard(["Код отправлен"]))
