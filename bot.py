@@ -146,7 +146,7 @@ async def process_get_code(message: types.Message, state: FSMContext):
             await message.answer(response['fullmessage'], reply_markup=keyboard)
             await Form.services.set()
         elif response['status'] == "ERROR":
-            await message.answer("Вы не отправили письмо. Отправьте его повторно или введите /cancel",
+            await message.answer(f"Вы не отправили письмо. {response['value']} Отправьте его повторно или введите /cancel",
                                  reply_markup=get_reply_keyboard(["Код отправлен"]))
 
 
