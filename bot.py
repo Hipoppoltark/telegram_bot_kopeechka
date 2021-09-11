@@ -136,7 +136,7 @@ async def process_get_code(message: types.Message, state: FSMContext):
         response = {"value": "WAIT_LINK"}
         i = 0
         while response['value'] == "WAIT_LINK":
-            if i == 10:
+            if i == 5:
                 await message.answer("Мы не нашли письма, попробуйте все занвово.",
                                      reply_markup=get_reply_keyboard(["Получить код с почты kopeechka.store📧"]))
                 await Form.services.set()
