@@ -5,9 +5,10 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+import os
 
 
-STANDART_TOKEN = "308a347c3b38e85bfbc5ae53f6758ade"
+STANDARD_TOKEN = os.environ.get("STANDARD_TOKEN")
 
 
 # Объект бота
@@ -26,8 +27,6 @@ def get_reply_keyboard(buttons: list):
 
 class Form(StatesGroup):
     services = State()
-    type_key = State()
-    api_key = State()
     site = State()
     email = State()
     send_message = State()
@@ -73,34 +72,12 @@ async def which_api_key_use_invalid(message: types.Message):
 
 
 # Принимаем услугу
-@dp.message_handler(state=Form.services)
-async def which_api_key_use(message: types.Message):
-    keyboard = get_reply_keyboard(["Стандартный API KEY", "Ввести свой API KEY"])
-    await Form.type_key.set()
-    await message.reply("Какой API ключ использовать?", reply_markup=keyboard)
-
-
-# Проверяем тип API KEY
-@dp.message_handler(lambda message: message.text not in ["Стандартный API KEY", "Ввести свой API KEY"],
-                    state=Form.type_key)
-async def process_type_key_invalid(message: types.Message):
-    return await message.reply("Введите корректный тип API KEY или напиши /cancel")
-
-
 # Сюда приходит ответ с типом API KEY
-@dp.message_handler(state=Form.type_key)
+@dp.message_handler(state=Form.services)
 async def process_name(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['type_api'] = message.text
-
-        if message.text == "Ввести свой API KEY":
-            await Form.api_key.set()
-            await message.reply("Введите свой API.")
-        else:
-            data['api_key'] = STANDART_TOKEN
-            keyboard = get_reply_keyboard(["facebook.com", "vk.com"])
-            await Form.site.set()
-            await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
+    keyboard = get_reply_keyboard(["facebook.com", "vk.com"])
+    await Form.site.set()
+    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
 
 
 @dp.message_handler(state=Form.site)
@@ -109,15 +86,6 @@ async def process_site(message: types.Message, state: FSMContext):
         data['site'] = message.text
         await Form.email.set()
         await message.reply("Введите свой email")
-
-
-# Принимаем API KEY пользователя
-@dp.message_handler(state=Form.api_key)
-async def get_user_api_key(message: types.Message, state: FSMContext):
-    await Form.next()
-    await state.update_data(api_key=message.text)
-    keyboard = get_reply_keyboard(["facebook.com", "vk.com"])
-    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
 
 
 # Сохраняем email
@@ -141,26 +109,24 @@ async def process_get_code(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         response = requests.get(
             'http://api.kopeechka.store/mailbox-get-fresh-id',
-            params={'token': data['api_key'],
+            params={'token': STANDARD_TOKEN,
                     'site': data['site'],
                     'email': data['email'],
                     'type': 'json',
                     'api': '2.0'},
         )
         response = response.json()
-        print(response)
         if response['status'] == 'OK':
             task_id = response['id']
             response = requests.get(
                 'http://api.kopeechka.store/mailbox-get-message',
                 params={'full': '0',
                         'id': task_id,
-                        'token': data['api_key'],
+                        'token': STANDARD_TOKEN,
                         'type': 'json',
                         'api': '2.0'},
             )
             response = response.json()
-            print(response)
             if response['status'] == "OK":
                 await message.answer(response['fullmessage'], reply_markup=keyboard)
                 await state.finish()
