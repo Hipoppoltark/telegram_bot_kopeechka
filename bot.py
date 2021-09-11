@@ -34,7 +34,8 @@ class Form(StatesGroup):
 
 async def set_default_commands(dp):
     await dp.bot.set_my_commands([
-        types.BotCommand("start", "Услуги")
+        types.BotCommand("start", "Услуги"),
+        types.BotCommand("cancel", "Отменить")
     ])
 
 
@@ -49,13 +50,20 @@ async def cmd_test1(message: types.Message):
 # Добавляем возможность отмены, если пользователь передумал заполнять
 @dp.message_handler(state='*', commands='cancel')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
-async def cancel_handler(message: types.Message, state: FSMContext):
+async def cancel_handler_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
 
     await state.finish()
     await message.reply('Хорошо')
+
+
+# Добавляем возможность отмены, если пользователь передумал заполнять
+@dp.message_handler(commands='cancel')
+@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
+async def cancel_handler(message: types.Message):
+    await message.reply('Вы еще не начали работу с ботом. Для старта введите /start')
 
 
 """# Обработка кнопки 'назад'
@@ -94,19 +102,7 @@ async def process_get_email(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['email'] = message.text
         keyboard = get_reply_keyboard(["Код отправлен"])
-        await Form.next()
-        await message.answer(f"На сайте {data['site']} нажмите "
-                             f"получить код по почте, после этого нажмите 'Код отправлен'",
-                             reply_markup=keyboard)
-
-
-# Отправляем запрос на сайт копеечки
-@dp.message_handler(lambda message: message.text == "Код отправлен",
-                    state=Form.send_message)
-async def process_get_code(message: types.Message, state: FSMContext):
-    keyboard = get_reply_keyboard(["Получить код с почты kopeechka.store📧"])
-    await message.answer("Сейчас получим код")
-    async with state.proxy() as data:
+        await message.answer(f"Сейчас активируем почту...")
         response = requests.get(
             'http://api.kopeechka.store/mailbox-reorder',
             params={'token': STANDARD_TOKEN,
@@ -117,26 +113,41 @@ async def process_get_code(message: types.Message, state: FSMContext):
         )
         response = response.json()
         if response['status'] == 'OK':
-            task_id = response['id']
-            response = requests.get(
-                'http://api.kopeechka.store/mailbox-get-message',
-                params={'full': '0',
-                        'id': task_id,
-                        'token': STANDARD_TOKEN,
-                        'type': 'json',
-                        'api': '2.0'},
-            )
-            response = response.json()
-            if response['status'] == "OK":
-                await message.answer(response['fullmessage'], reply_markup=keyboard)
-                await Form.services.set()
-            elif response['status'] == "ERROR":
-                await message.answer("Вы не отправили письмо.",
-                                     reply_markup=get_reply_keyboard(["Код отправлен"]))
+            data['task_id'] = response['id']
+            await Form.next()
+            await message.answer("Почта активирована.")
+            await message.answer(f"На сайте {data['site']} нажмите "
+                                 f"получить код по почте, после этого нажмите 'Код отправлен'",
+                                 reply_markup=keyboard)
         else:
             await message.answer("API или email или сайт не корректны, поробуйте заново ввести их",
                                  reply_markup=get_reply_keyboard(["Получить код с почты kopeechka.store📧"]))
             await Form.services.set()
+
+
+# Отправляем запрос на сайт копеечки
+@dp.message_handler(lambda message: message.text == "Код отправлен",
+                    state=Form.send_message)
+async def process_get_code(message: types.Message, state: FSMContext):
+    keyboard = get_reply_keyboard(["Получить код с почты kopeechka.store📧"])
+    await message.answer("Сейчас получим код")
+    async with state.proxy() as data:
+        task_id = data['task_id']
+        response = requests.get(
+            'http://api.kopeechka.store/mailbox-get-message',
+            params={'full': '0',
+                    'id': task_id,
+                    'token': STANDARD_TOKEN,
+                    'type': 'json',
+                    'api': '2.0'},
+        )
+        response = response.json()
+        if response['status'] == "OK":
+            await message.answer(response['fullmessage'], reply_markup=keyboard)
+            await Form.services.set()
+        elif response['status'] == "ERROR":
+            await message.answer("Вы не отправили письмо. Отправьте его повторно или введите /cancel",
+                                 reply_markup=get_reply_keyboard(["Код отправлен"]))
 
 
 if __name__ == "__main__":
