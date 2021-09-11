@@ -108,7 +108,7 @@ async def process_get_code(message: types.Message, state: FSMContext):
     await message.answer("Сейчас получим код")
     async with state.proxy() as data:
         response = requests.get(
-            'http://api.kopeechka.store/mailbox-get-fresh-id',
+            'http://api.kopeechka.store/mailbox-reorder',
             params={'token': STANDARD_TOKEN,
                     'site': data['site'],
                     'email': data['email'],
