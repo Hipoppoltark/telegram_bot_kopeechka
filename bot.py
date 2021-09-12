@@ -5,6 +5,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+import asyncio
 import os
 
 
@@ -125,13 +126,37 @@ async def process_get_email(message: types.Message, state: FSMContext):
             await Form.services.set()
 
 
+async def background_on_action(task_id, message) -> None:
+    """background task which is created when user asked"""
+    keyboard = get_reply_keyboard(["Получить код с почты kopeechka.store📧"])
+    await asyncio.sleep(8)
+    response = requests.get(
+        'http://api.kopeechka.store/mailbox-get-message',
+        params={'full': '0',
+                'id': task_id,
+                'token': STANDARD_TOKEN,
+                'type': 'json',
+                'api': '2.0'},
+    )
+    response = response.json()
+    if response['status'] == "OK":
+        await bot.send_message(message.from_user.id, response['fullmessage'], reply_markup=keyboard)
+        await Form.services.set()
+    else:
+        await bot.send_message(message.from_user.id,
+                               "Вы не отправили письмо. Отправьте его повторно или введите /cancel",
+                               reply_markup=get_reply_keyboard(["Код отправлен"]))
+
+
 # Отправляем запрос на сайт копеечки
 @dp.message_handler(lambda message: message.text == "Код отправлен",
                     state=Form.send_message)
 async def process_get_code(message: types.Message, state: FSMContext):
-    keyboard = get_reply_keyboard(["Получить код с почты kopeechka.store📧"])
     await message.answer("Сейчас получим код")
     async with state.proxy() as data:
+        task_id = data['task_id']
+        asyncio.create_task(background_on_action(task_id, message))
+    """async with state.proxy() as data:
         task_id = data['task_id']
         response = {"value": "WAIT_LINK"}
         i = 0
@@ -157,7 +182,7 @@ async def process_get_code(message: types.Message, state: FSMContext):
                 await message.answer(f"Вы не отправили письмо. Отправьте его повторно или введите /cancel",
                                      reply_markup=get_reply_keyboard(["Код отправлен"]))
                 break
-            i += 1
+            i += 1"""
 
 
 if __name__ == "__main__":
