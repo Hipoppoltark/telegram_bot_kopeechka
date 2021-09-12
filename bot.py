@@ -86,7 +86,8 @@ async def which_api_key_use_invalid(message: types.Message):
 async def process_name(message: types.Message, state: FSMContext):
     keyboard = get_reply_keyboard(["facebook.com", "vk.com"])
     await Form.site.set()
-    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
+    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard,
+                        one_time_keyboard=True)
 
 
 @dp.message_handler(state=Form.site)
