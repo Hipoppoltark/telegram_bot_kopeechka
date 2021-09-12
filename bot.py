@@ -20,8 +20,8 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 logging.basicConfig(level=logging.INFO)
 
 
-def get_reply_keyboard(buttons: list):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def get_reply_keyboard(buttons: list, time=False):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=time)
     keyboard.add(*buttons)
     return keyboard
 
@@ -84,10 +84,9 @@ async def which_api_key_use_invalid(message: types.Message):
 # Сюда приходит ответ с типом API KEY
 @dp.message_handler(state=Form.services)
 async def process_name(message: types.Message, state: FSMContext):
-    keyboard = get_reply_keyboard(["facebook.com", "vk.com"])
+    keyboard = get_reply_keyboard(["facebook.com", "vk.com"], time=True)
     await Form.site.set()
-    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard,
-                        one_time_keyboard=True)
+    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
 
 
 @dp.message_handler(state=Form.site)
