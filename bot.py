@@ -141,7 +141,7 @@ async def background_on_action(task_id, message, site) -> None:
     keyboard = get_reply_keyboard(["Получить код с почты kopeechka.store📧"])
     await asyncio.sleep(8)
     if site == "facebook.com":
-        await asyncio.sleep(8)
+        await asyncio.sleep(6)
     response = requests.get(
         'http://api.kopeechka.store/mailbox-get-message',
         params={'full': '0',
