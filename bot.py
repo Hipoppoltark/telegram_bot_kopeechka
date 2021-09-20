@@ -149,11 +149,11 @@ async def background_on_action(task_id, message, site) -> None:
                 'api': '2.0'},
     )
     response = response.json()
-    if site == "facebook.com":
-        message_email = parse_facebook(response['fullmessage'])
-    else:
-        message_email = response['fullmessage']
     if response['status'] == "OK":
+        if site == "facebook.com":
+            message_email = parse_facebook(response['fullmessage'])
+        else:
+            message_email = response['fullmessage']
         await bot.send_message(message.from_user.id, message_email, reply_markup=keyboard)
         await Form.services.set()
     else:
