@@ -28,7 +28,7 @@ def parse_facebook(text):
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
     print(text)
-    return text
+    return text[:4095]
 
 
 def get_reply_keyboard(buttons: list, time=False):
