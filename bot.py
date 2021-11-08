@@ -38,7 +38,7 @@ def get_reply_keyboard(buttons: list, time=False):
 
 class Form(StatesGroup):
     services = State()
-    site = State()
+    # site = State()
     email = State()
     send_message = State()
 
@@ -92,17 +92,17 @@ async def which_api_key_use_invalid(message: types.Message):
 
 # Принимаем услугу
 # Сюда приходит ответ с типом API KEY
-@dp.message_handler(state=Form.services)
+"""@dp.message_handler(state=Form.services)
 async def process_name(message: types.Message, state: FSMContext):
     keyboard = get_reply_keyboard(["facebook.com", "vk.com"], time=True)
     await Form.site.set()
-    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)
+    await message.reply("Введите свой сайт или выбиртие из предложенных.", reply_markup=keyboard)"""
 
 
-@dp.message_handler(state=Form.site)
+@dp.message_handler(state=Form.services)
 async def process_site(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['site'] = message.text
+        data['site'] = "facebook.com"
         await Form.email.set()
         await message.reply("Введите свой email")
 
