@@ -6,12 +6,12 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 import asyncio
-from bs4 import BeautifulSoup
 import os
+import re
 
 
 STANDARD_TOKEN = os.environ.get("STANDARD_TOKEN")
-
+# '9e77ae7e6e2d1d5a68a4d1cc3d5c7247'
 
 # Объект бота
 bot = Bot(token="1913319721:AAFPa-vvm1RMBBcg3Ya5jpsrFNUb0m5N8nA")
@@ -22,13 +22,16 @@ logging.basicConfig(level=logging.INFO)
 
 
 def parse_facebook(text):
-    soup = BeautifulSoup(text, "html.parser")
+    """soup = BeautifulSoup(text, "html.parser")
     data = soup.findAll('span')
+    print(text)
     for elem in data:
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
-    print(text)
-    return text[:4095]
+    return text[:4095]"""
+    result = re.findall(r'\d{8}</span>', text)
+    return result[0][:8]
+
 
 
 def get_reply_keyboard(buttons: list, time=False):
