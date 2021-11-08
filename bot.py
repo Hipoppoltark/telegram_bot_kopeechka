@@ -27,6 +27,7 @@ def parse_facebook(text):
     for elem in data:
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
+    print(text)
     return text
 
 
@@ -160,7 +161,8 @@ async def background_on_action(task_id, message, site) -> None:
         await Form.services.set()
     else:
         await bot.send_message(message.from_user.id,
-                               "Вы не отправили письмо. Отправьте его повторно или введите /cancel",
+                               "Вы не отправили письмо или оно еще не пришло."
+                               "Отправьте его повторно или нажмите 'Код отправлен'",
                                reply_markup=get_reply_keyboard(["Код отправлен"]))
 
 
