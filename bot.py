@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 
 def parse_facebook(text):
     soup = BeautifulSoup(text, "html.parser")
-    data = soup.findAll('span', class_='mb_text')
+    data = soup.findAll('span')
     for elem in data:
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
