@@ -27,7 +27,7 @@ def parse_facebook(text):
     for elem in data:
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
-    return "Письмо не распознано"
+    return text
 
 
 def get_reply_keyboard(buttons: list, time=False):
