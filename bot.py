@@ -33,7 +33,6 @@ def parse_facebook(text):
     return result[0][:8]
 
 
-
 def get_reply_keyboard(buttons: list, time=False):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=time)
     keyboard.add(*buttons)
