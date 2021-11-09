@@ -29,7 +29,7 @@ def parse_facebook(text):
         if len(elem.text) == 8 and elem.text.isdigit():
             return elem.text
     return text[:4095]"""
-    result = re.findall(r'\d{8}</span>', text)
+    result = re.findall(r'>(?P<code>\d{8})<', text)
     return result[0][:8]
 
 
