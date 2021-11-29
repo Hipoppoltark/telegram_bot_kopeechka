@@ -23,8 +23,10 @@ logging.basicConfig(level=logging.INFO)
 
 def parse_facebook(text):
     """Парсинг письма с Facebook"""
-    result = re.findall(r'>(?P<code>\d{8})<', text)
-    return result[0][:8]
+    result = re.findall(r'>(\d{8})<', text)
+    if not result:
+        return "Письмо не спарсилось"
+    return "".join(result)
 
 
 def get_reply_keyboard(buttons: list, time=False):
